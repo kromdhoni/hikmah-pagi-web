@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hikmah Pagi — Warisan Hikmah Ayah</title>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="css/style.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
@@ -26,13 +26,13 @@ const db = firebase.firestore();
     <div class="brand"><span class="brand-icon">🌷</span><span class="brand-text">Hikmah Pagi</span><span class="brand-sub">Warisan Hikmah Ayah</span></div>
     <div class="sidebar-label">Menu</div>
     <nav class="nav">
-      <a href="/" class="nav-link active">Beranda</a>
-      <a href="/tausiyah.html" class="nav-link">Tausiyah</a>
-      <a href="/hikmah.html" class="nav-link">Hikmah</a>
-      <a href="/hadits.html" class="nav-link">Hadits</a>
-      <a href="/quran.html" class="nav-link">Quran</a>
-      <a href="/pengaturan.html" class="nav-link">Pengaturan</a>
-      <a href="/logs.html" class="nav-link">Log</a>
+      <a href="index.html" class="nav-link active">Beranda</a>
+      <a href="tausiyah.html" class="nav-link">Tausiyah</a>
+      <a href="hikmah.html" class="nav-link">Hikmah</a>
+      <a href="hadits.html" class="nav-link">Hadits</a>
+      <a href="quran.html" class="nav-link">Quran</a>
+      <a href="pengaturan.html" class="nav-link">Pengaturan</a>
+      <a href="logs.html" class="nav-link">Log</a>
     </nav>
 </aside>
 <main class="main">
@@ -48,8 +48,8 @@ const db = firebase.firestore();
   <p class="hero-arab">وَقُل رَّبِّ زِدْنِي عِلْمًا</p>
   <p class="hero-sub">“Ya Tuhanku, tambahkanlah kepadaku ilmu.” (QS. Thaha: 114) — Kumpulan tausiyah, hikmah, hadits, dan ayat pilihan yang dikirim otomatis ke grup WhatsApp setiap pagi.</p>
   <div class="hero-cta">
-    <a href="/tausiyah.html" class="btn btn-gold btn-lg">Jelajahi Tausiyah</a>
-    <a href="/pengaturan.html" class="btn btn-outline-light btn-lg">Koneksi WhatsApp</a>
+    <a href="tausiyah.html" class="btn btn-gold btn-lg">Jelajahi Tausiyah</a>
+    <a href="pengaturan.html" class="btn btn-outline-light btn-lg">Koneksi WhatsApp</a>
   </div>
   <div class="hero-meta">
     <div class="hero-meta-item"><b id="heroStatTausiyah">–</b><span>Tausiyah tersimpan</span></div>
@@ -71,22 +71,22 @@ const db = firebase.firestore();
     <p class="section-sub">Empat perpustakaan mini yang terus bertambah. Klik kartu untuk membuka.</p></div>
   </div>
   <div class="stat-grid">
-    <a href="/tausiyah.html" class="card card-lift stat-card">
+    <a href="tausiyah.html" class="card card-lift stat-card">
       <div class="stat-num" id="statTausiyah">0</div>
       <div class="stat-label">Tausiyah</div>
       <span class="stat-link">Buka arsip →</span>
     </a>
-    <a href="/hikmah.html" class="card card-lift stat-card">
+    <a href="hikmah.html" class="card card-lift stat-card">
       <div class="stat-num" id="statHikmah">0</div>
       <div class="stat-label">Hikmah</div>
       <span class="stat-link">Buka arsip →</span>
     </a>
-    <a href="/hadits.html" class="card card-lift stat-card">
+    <a href="hadits.html" class="card card-lift stat-card">
       <div class="stat-num" id="statHadits">0</div>
       <div class="stat-label">Hadits</div>
       <span class="stat-link">Buka arsip →</span>
     </a>
-    <a href="/quran.html" class="card card-lift stat-card">
+    <a href="quran.html" class="card card-lift stat-card">
       <div class="stat-num" id="statQuran">0</div>
       <div class="stat-label">Ayat Quran</div>
       <span class="stat-link">Buka arsip →</span>
@@ -103,19 +103,19 @@ const db = firebase.firestore();
   </div>
   <div class="grid2">
     <div class="card card-lift">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Tausiyah Terbaru</h3><a href="/tausiyah.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Tausiyah Terbaru</h3><a href="tausiyah.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
       <div id="latestTausiyah" style="margin-top:var(--space-sm);color:var(--muted)">Memuat...</div>
     </div>
     <div class="card card-lift">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Hikmah Terbaru</h3><a href="/hikmah.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Hikmah Terbaru</h3><a href="hikmah.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
       <div id="latestHikmah" style="margin-top:var(--space-sm);color:var(--muted)">Memuat...</div>
     </div>
     <div class="card card-lift">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Hadits Terbaru</h3><a href="/hadits.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Hadits Terbaru</h3><a href="hadits.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
       <div id="latestHadits" style="margin-top:var(--space-sm);color:var(--muted)">Memuat...</div>
     </div>
     <div class="card card-lift">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Quran Terbaru</h3><a href="/quran.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Quran Terbaru</h3><a href="quran.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
       <div id="latestQuran" style="margin-top:var(--space-sm);color:var(--muted)">Memuat...</div>
     </div>
   </div>
@@ -133,7 +133,7 @@ const db = firebase.firestore();
     <div id="configInfo" style="color:var(--muted)">Memuat...</div>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center"><h3>Log Pengiriman Terakhir</h3><a href="/logs.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3>Log Pengiriman Terakhir</h3><a href="logs.html" class="btn btn-ghost btn-sm">Lihat Semua</a></div>
     <table class="table" style="margin-top:var(--space-sm)"><thead><tr><th>Waktu</th><th>Judul</th><th>Berhasil</th><th>Gagal</th></tr></thead><tbody id="logBody"></tbody></table>
     <p id="logEmpty" style="display:none;color:var(--muted);text-align:center;padding:var(--space-md)">Belum ada log pengiriman</p>
   </div>
