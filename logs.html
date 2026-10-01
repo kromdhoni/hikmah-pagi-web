@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log — Hikmah Pagi</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyA1wKt-kpfsG36Ut24NcoKvhLjHk8AoXMk",
+  authDomain: "hikmah-pagi.firebaseapp.com",
+  projectId: "hikmah-pagi",
+  storageBucket: "hikmah-pagi.firebasestorage.app",
+  messagingSenderId: "53407318584",
+  appId: "1:53407318584:web:eeeb3b039f716fbbf71ccd"
+});
+const db = firebase.firestore();
+</script>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <div class="brand"><span class="brand-icon">🌷</span><span class="brand-text">Hikmah Pagi</span><span class="brand-sub">Warisan Hikmah Ayah</span></div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Beranda</a>
+      <a href="/tausiyah.html" class="nav-link">Tausiyah</a>
+      <a href="/hikmah.html" class="nav-link">Hikmah</a>
+      <a href="/hadits.html" class="nav-link">Hadits</a>
+      <a href="/quran.html" class="nav-link">Quran</a>
+      <a href="/pengaturan.html" class="nav-link">Pengaturan</a>
+      <a href="/logs.html" class="nav-link active">Log</a>
+    </nav>
+</aside>
+<main class="main">
+<div class="card animate-in">
+  <div style="display:flex;justify-content:space-between;align-items:center"><h3>Log Pengiriman</h3><button class="btn btn-ghost btn-sm" onclick="loadLogs()">Refresh</button></div>
+  <table class="table" style="margin-top:var(--space-md)"><thead><tr><th>Waktu</th><th>Judul</th><th>Total Grup</th><th>Berhasil</th><th>Gagal</th></tr></thead><tbody id="logBody"></tbody></table>
+  <p id="empty" style="display:none;color:var(--muted);text-align:center;padding:var(--space-lg)">Belum ada log pengiriman</p>
+</div>
+
+<!-- Modal Detail -->
+<div id="detailModal" class="modal-overlay"><div class="modal-content">
+  <h3 id="detailTitle">Detail Log</h3>
+  <div id="detailBody" style="white-space:pre-wrap;line-height:1.8"></div>
+  <div style="margin-top:var(--space-lg)"><button class="btn btn-ghost" onclick="closeDetail()">Tutup</button></div>
+</div></div>
+
+<script>
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function closeDetail(){ document.getElementById('detailModal').classList.remove('active'); }
+
+let allLogs = [];
+async function loadLogs(){
+  try{
+    const snap = await db.collection('logs').orderBy('timestamp','desc').limit(50).get();
+    allLogs = [];
+    const tbody = document.getElementById('logBody');
+    tbody.innerHTML = '';
+    if(snap.empty){ document.getElementById('empty').style.display='block'; return; }
+    document.getElementById('empty').style.display='none';
+    snap.forEach(doc => {
+      const l = doc.data();
+      allLogs.push(l);
+      if(l.type !== 'send') return;
+      const tr = document.createElement('tr');
+      tr.style.cursor = 'pointer';
+      const time = l.timestamp && l.timestamp._seconds ? new Date(l.timestamp._seconds*1000).toLocaleString('id-ID') : (l.timestamp || '-');
+      tr.innerHTML = '<td style="font-size:13px">' + esc(time) + '</td><td><strong>' + esc(l.tausiyah_judul||l.tausiyah_id||'-') + '</strong></td><td>' + esc(l.total_grups||0) + '</td><td style="color:#059669;font-weight:600">' + esc(l.berhasil||0) + '</td><td style="color:#dc2626;font-weight:600">' + esc(l.gagal||0) + '</td>';
+      tr.onclick = function(){
+        document.getElementById('detailTitle').textContent = l.tausiyah_judul || 'Detail Log';
+        document.getElementById('detailBody').innerHTML =
+          '<div style="display:grid;gap:12px">' +
+          '<div><span style="font-size:12px;color:var(--muted)">Waktu</span><p>' + esc(time) + '</p></div>' +
+          '<div><span style="font-size:12px;color:var(--muted)">ID Tausiyah</span><p>' + esc(l.tausiyah_id||'-') + '</p></div>' +
+          '<div><span style="font-size:12px;color:var(--muted)">Total Grup</span><p>' + esc(l.total_grups||0) + '</p></div>' +
+          '<div><span style="font-size:12px;color:var(--muted)">Berhasil</span><p style="color:#059669;font-weight:600">' + esc(l.berhasil||0) + '</p></div>' +
+          '<div><span style="font-size:12px;color:var(--muted)">Gagal</span><p style="color:#dc2626;font-weight:600">' + esc(l.gagal||0) + '</p></div>' +
+          '</div>';
+        document.getElementById('detailModal').classList.add('active');
+      };
+      tbody.appendChild(tr);
+    });
+  }catch(e){ console.error(e); }
+}
+loadLogs();
+</script>
+<footer class="footer">© Hikmah Pagi — melanjutkan dakwah Ayah</footer>
+</main>
+</div>
+</body>
+</html>

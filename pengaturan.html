@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengaturan — Hikmah Pagi</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyA1wKt-kpfsG36Ut24NcoKvhLjHk8AoXMk",
+  authDomain: "hikmah-pagi.firebaseapp.com",
+  projectId: "hikmah-pagi",
+  storageBucket: "hikmah-pagi.firebasestorage.app",
+  messagingSenderId: "53407318584",
+  appId: "1:53407318584:web:eeeb3b039f716fbbf71ccd"
+});
+const db = firebase.firestore();
+</script>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <div class="brand"><span class="brand-icon">🌷</span><span class="brand-text">Hikmah Pagi</span><span class="brand-sub">Warisan Hikmah Ayah</span></div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Beranda</a>
+      <a href="/tausiyah.html" class="nav-link">Tausiyah</a>
+      <a href="/hikmah.html" class="nav-link">Hikmah</a>
+      <a href="/hadits.html" class="nav-link">Hadits</a>
+      <a href="/quran.html" class="nav-link">Quran</a>
+      <a href="/pengaturan.html" class="nav-link active">Pengaturan</a>
+      <a href="/logs.html" class="nav-link">Log</a>
+    </nav>
+</aside>
+<main class="main">
+<!-- Koneksi WhatsApp -->
+<div class="card animate-in" style="border-left:3px solid #25D366">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <h3>Koneksi WhatsApp</h3>
+    <div id="waStatusBadge" class="badge" style="background:rgba(220,38,38,.1);color:#dc2626">Offline</div>
+  </div>
+  <div style="margin-top:var(--space-md);padding:12px;background:var(--primary-light);border-radius:var(--radius);font-size:13px">
+    <label style="font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px">Server Lokal (untuk koneksi WA)</label>
+    <div style="display:flex;gap:8px">
+      <input class="input" id="serverUrl" placeholder="https://xxx.trycloudflare.com" style="flex:1">
+      <button class="btn btn-sm" onclick="saveServerUrl()">Simpan</button>
+      <button class="btn btn-ghost btn-sm" onclick="testConnection()">Test</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:4px">Jalankan <code>.\cloudflared.exe tunnel --url http://localhost:3000</code> di laptop, lalu paste URL-nya di sini.</p>
+  </div>
+  <div id="waInfo" style="margin-top:var(--space-md);display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--space-md)">
+    <div><span style="font-size:12px;color:var(--muted)">Status</span><p id="waStatusText" style="font-weight:600">Memeriksa...</p></div>
+    <div><span style="font-size:12px;color:var(--muted)">Nomor</span><p id="waNumber" style="font-weight:600">-</p></div>
+    <div><span style="font-size:12px;color:var(--muted)">Jadwal</span><p id="waJadwal" style="font-weight:600">-</p></div>
+  </div>
+  <div id="qrSection" style="display:none;margin-top:var(--space-md);text-align:center;padding:var(--space-lg);background:var(--bg);border-radius:var(--radius-lg);border:2px dashed var(--border)">
+    <p style="font-weight:600;margin-bottom:var(--space-sm)">Scan QR Code ini dengan WhatsApp</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:var(--space-md)">Buka WhatsApp → Linked Devices → Link a Device</p>
+    <canvas id="qrCanvas"></canvas>
+    <p id="qrExpiry" style="font-size:11px;color:var(--muted);margin-top:var(--space-sm)"></p>
+  </div>
+  <div style="margin-top:var(--space-md)">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-weight:600;font-size:14px">Grup WhatsApp</span>
+      <button class="btn btn-ghost btn-sm" onclick="loadGroups()">Muat Grup</button>
+    </div>
+    <div id="groupList" style="margin-top:var(--space-sm)">
+      <p style="color:var(--muted);font-size:13px">Klik "Muat Grup" untuk melihat daftar grup</p>
+    </div>
+  </div>
+  <div style="margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px solid var(--border-light)">
+    <label style="font-weight:600;font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px">Kirim Test ke Grup</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="groupSelect" class="input" style="flex:1;min-width:200px"><option value="">-- Pilih Grup --</option></select>
+      <button class="btn btn-accent btn-sm" onclick="sendTest()">Kirim Test</button>
+      <button class="btn btn-ghost btn-sm" onclick="previewTestChat()">Preview Chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview Chat Test -->
+<div id="previewModal" class="modal-overlay" onclick="if(event.target===this)closePreview()"><div class="modal-content" style="max-width:700px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-sm)">
+    <h3 id="previewTitle" style="margin:0">Preview Chat Test</h3>
+    <button class="btn btn-ghost btn-sm" onclick="closePreview()" style="padding:6px;line-height:1;min-height:auto" aria-label="Tutup">✕</button>
+  </div>
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-lg);max-height:60vh;overflow:auto;font-family:inherit;line-height:1.7" id="previewBody"></div>
+  <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm);flex-wrap:wrap">
+    <button class="btn btn-ghost" onclick="closePreview()">Tutup</button>
+    <button class="btn" onclick="copyPreview()">Salin Chat</button>
+  </div>
+</div></div>
+
+<div class="card animate-in animate-in-delay-1" style="margin-top:var(--space-md)">
+  <h3>Pengaturan</h3>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:var(--space-lg)">Pengaturan jadwal dan pesan WhatsApp. Perubahan akan disimpan ke Firestore dan berlaku untuk bot lokal.</p>
+  <form id="cfgForm" onsubmit="saveConfig(event)">
+    <div class="grid2" style="margin-bottom:var(--space-md)">
+      <label style="display:block;font-weight:600;font-size:13px;color:var(--text-secondary)">Jam Mulai<input class="input" id="jam_mulai" type="number" min="0" max="23" required style="margin-top:4px"></label>
+      <label style="display:block;font-weight:600;font-size:13px;color:var(--text-secondary)">Jam Selesai<input class="input" id="jam_selesai" type="number" min="1" max="24" required style="margin-top:4px"></label>
+    </div>
+    <label style="display:block;margin-bottom:var(--space-md);font-weight:600;font-size:13px;color:var(--text-secondary)">Timezone<select class="input" id="timezone" style="margin-top:4px"><option>Asia/Jakarta</option><option>Asia/Makassar</option><option>Asia/Jayapura</option></select></label>
+    <label style="display:block;margin-bottom:var(--space-md);font-weight:600;font-size:13px;color:var(--text-secondary)">Grup Target (pisahkan koma)<input class="input" id="grup_target" placeholder="Nama Grup 1, Nama Grup 2" style="margin-top:4px"></label>
+    <label style="display:block;margin-bottom:var(--space-md);font-weight:600;font-size:13px;color:var(--text-secondary)">Pesan Pembuka<textarea class="input" id="pesan_pembuka" rows="3" style="margin-top:4px"></textarea></label>
+    <label style="display:block;margin-bottom:var(--space-lg);font-weight:600;font-size:13px;color:var(--text-secondary)">Pesan Penutup<textarea class="input" id="pesan_penutup" rows="3" style="margin-top:4px"></textarea></label>
+    <div style="display:flex;gap:var(--space-sm)"><button class="btn" type="submit">Simpan Pengaturan</button><button class="btn btn-ghost" type="button" onclick="loadConfig()">Muat Ulang</button></div>
+  </form>
+</div>
+<div id="saved" style="display:none;position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:14px 22px;border-radius:var(--radius);box-shadow:var(--shadow-xl);font-size:14px;font-weight:500;z-index:1000;animation:toastIn 400ms cubic-bezier(.34,1.56,.64,1) forwards">Pengaturan tersimpan!</div>
+<div id="waToast" style="display:none;position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:14px 22px;border-radius:var(--radius);box-shadow:var(--shadow-xl);font-size:14px;font-weight:500;z-index:1000"></div>
+<script>
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(){ const el=document.getElementById('saved'); el.style.display='block'; setTimeout(()=>{ el.style.display='none'; },3000); }
+async function loadConfig(){
+  try{
+    const snap = await db.collection('config').doc('app_config').get();
+    const c = snap.data();
+    if(!c) return;
+    const j = c.jadwal || {};
+    document.getElementById('jam_mulai').value = j.jam_mulai || 6;
+    document.getElementById('jam_selesai').value = j.jam_selesai || 21;
+    document.getElementById('timezone').value = j.timezone || 'Asia/Jakarta';
+    document.getElementById('grup_target').value = (c.grup_target || []).join(', ');
+    document.getElementById('pesan_pembuka').value = c.pesan_pembuka || '';
+    document.getElementById('pesan_penutup').value = c.pesan_penutup || '';
+  }catch(e){ console.error(e); }
+}
+async function saveConfig(e){
+  e.preventDefault();
+  const payload = {
+    jadwal: {
+      jam_mulai: Number(document.getElementById('jam_mulai').value),
+      jam_selesai: Number(document.getElementById('jam_selesai').value),
+      timezone: document.getElementById('timezone').value
+    },
+    grup_target: document.getElementById('grup_target').value.split(',').map(s=>s.trim()).filter(Boolean),
+    pesan_pembuka: document.getElementById('pesan_pembuka').value,
+    pesan_penutup: document.getElementById('pesan_penutup').value
+  };
+  try{
+    await db.collection('config').doc('app_config').set(payload, {merge:true});
+    showToast();
+  }catch(e){ alert('Error: '+e.message); }
+}
+// ─── KONEKSI WHATSAPP ───
+let serverUrl = localStorage.getItem('hikmah_server_url') || '';
+function waToast(msg, isError){
+  const el = document.getElementById('waToast');
+  el.textContent = msg;
+  el.style.background = isError ? '#dc2626' : 'var(--primary)';
+  el.style.display = 'block';
+  setTimeout(()=>{ el.style.display='none'; }, 3000);
+}
+function saveServerUrl(){
+  serverUrl = document.getElementById('serverUrl').value.replace(/\/+$/, '');
+  localStorage.setItem('hikmah_server_url', serverUrl);
+  waToast('Server URL disimpan');
+  testConnection();
+}
+async function testConnection(){
+  if(!serverUrl){ waToast('Isi server URL dulu', true); return; }
+  try{
+    const r = await fetch(serverUrl + '/api/status', {signal: AbortSignal.timeout(5000)});
+    const d = await r.json();
+    if(d.connected !== undefined){ waToast('Koneksi berhasil!'); updateWADisplay(d); }
+    else waToast('Response tidak valid', true);
+  }catch(e){
+    waToast('Gagal koneksi: ' + e.message, true);
+    document.getElementById('waStatusText').textContent = 'Tidak terjangkau';
+    const badge = document.getElementById('waStatusBadge');
+    badge.textContent = 'Error';
+    badge.style.background = 'rgba(220,38,38,.1)';
+    badge.style.color = '#dc2626';
+  }
+}
+function updateWADisplay(data){
+  const badge = document.getElementById('waStatusBadge');
+  const statusText = document.getElementById('waStatusText');
+  const number = document.getElementById('waNumber');
+  const jadwal = document.getElementById('waJadwal');
+  const qrSection = document.getElementById('qrSection');
+  if(data.connected){
+    badge.textContent = 'Online';
+    badge.style.background = 'rgba(5,150,105,.1)';
+    badge.style.color = '#059669';
+    statusText.textContent = 'Terhubung';
+    statusText.style.color = '#059669';
+    number.textContent = data.number || '-';
+    const j = data.jadwal || {};
+    jadwal.textContent = (j.jam_mulai||'-') + ':00 - ' + (j.jam_selesai||'-') + ':00 ' + (j.timezone||'');
+    qrSection.style.display = 'none';
+  } else {
+    badge.textContent = 'Offline';
+    badge.style.background = 'rgba(220,38,38,.1)';
+    badge.style.color = '#dc2626';
+    statusText.textContent = 'Belum terhubung';
+    statusText.style.color = '#dc2626';
+    number.textContent = '-';
+    jadwal.textContent = '-';
+    loadQR();
+  }
+}
+async function loadQR(){
+  if(!serverUrl) return;
+  try{
+    const r = await fetch(serverUrl + '/api/qr', {signal: AbortSignal.timeout(5000)});
+    const d = await r.json();
+    const qrSection = document.getElementById('qrSection');
+    if(d.qr){
+      qrSection.style.display = 'block';
+      QRCode.toCanvas(document.getElementById('qrCanvas'), d.qr, { width: 220, margin: 2 }, function(err){ if(err) console.error(err); });
+      document.getElementById('qrExpiry').textContent = 'QR valid ~60 detik. Jika expired, muat ulang halaman.';
+    } else qrSection.style.display = 'none';
+  }catch(e){ console.error('QR error:', e); }
+}
+async function loadGroups(){
+  if(!serverUrl){ waToast('Atur server URL dulu', true); return; }
+  try{
+    const r = await fetch(serverUrl + '/api/groups', {signal: AbortSignal.timeout(10000)});
+    const groups = await r.json();
+    if(groups.error) throw new Error(groups.error);
+    const list = document.getElementById('groupList');
+    const sel = document.getElementById('groupSelect');
+    list.innerHTML = '';
+    sel.innerHTML = '<option value="">-- Pilih Grup --</option>';
+    if(groups.length === 0){ list.innerHTML = '<p style="color:var(--muted);font-size:13px">Tidak ada grup ditemukan</p>'; return; }
+    groups.forEach(g => {
+      const li = document.createElement('li');
+      li.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--border-light);font-size:14px';
+      li.textContent = g.name;
+      list.appendChild(li);
+      const opt = document.createElement('option');
+      opt.value = g.id;
+      opt.textContent = g.name;
+      sel.appendChild(opt);
+    });
+    waToast('Ditemukan ' + groups.length + ' grup');
+  }catch(e){
+    waToast('Error: ' + e.message, true);
+    document.getElementById('groupList').innerHTML = '<p style="color:#dc2626;font-size:13px">' + esc(e.message) + '</p>';
+  }
+}
+async function sendTest(){
+  if(!serverUrl){ waToast('Atur server URL dulu', true); return; }
+  const gid = document.getElementById('groupSelect').value;
+  if(!gid){ waToast('Pilih grup dulu', true); return; }
+  try{
+    const r = await fetch(serverUrl + '/api/send-test', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({groupId: gid}),
+      signal: AbortSignal.timeout(15000)
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error);
+    waToast('Terkirim: ' + d.judul);
+  }catch(e){ waToast('Gagal: ' + e.message, true); }
+}
+async function pollWA(){
+  if(!serverUrl) return;
+  try{
+    const r = await fetch(serverUrl + '/api/status', {signal: AbortSignal.timeout(5000)});
+    updateWADisplay(await r.json());
+  }catch(e){ /* silent */ }
+}
+async function previewTestChat(){
+  document.getElementById('previewTitle').textContent = 'Preview Chat Test';
+  try{
+    const tSnap = await db.collection('tausiyah').get();
+    const list = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    if(list.length === 0){ document.getElementById('previewBody').textContent = 'Belum ada tausiyah'; }
+    else {
+      const t = list[Math.floor(Math.random() * list.length)];
+      const pembuka = document.getElementById('pesan_pembuka').value || '';
+      const penutup = document.getElementById('pesan_penutup').value || '';
+      let msg = '';
+      if(pembuka) msg += pembuka + '\n\n';
+      msg += t.judul + '\n\n';
+      if(t.arab) msg += t.arab + '\n\n';
+      msg += t.terjemah + '\n\n';
+      if(t.sumber) msg += '( ' + t.sumber + ' )\n\n';
+      if(t.doa) msg += t.doa + '\n\n';
+      if(penutup) msg += penutup;
+      document.getElementById('previewBody').textContent = msg;
+    }
+  }catch(e){ document.getElementById('previewBody').textContent = 'Error: ' + e.message; }
+  document.getElementById('previewModal').classList.add('active');
+}
+function closePreview(){ document.getElementById('previewModal').classList.remove('active'); }
+async function copyPreview(){
+  try{ await navigator.clipboard.writeText(document.getElementById('previewBody').textContent); waToast('Chat disalin!'); }
+  catch(e){ waToast('Gagal salin: '+e.message, true); }
+}
+
+loadConfig();
+document.getElementById('serverUrl').value = serverUrl;
+if(serverUrl){ testConnection(); setInterval(pollWA, 8000); }
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closePreview();
+});
+</script>
+<footer class="footer">© Hikmah Pagi — melanjutkan dakwah Ayah</footer>
+</main>
+</div>
+</body>
+</html>

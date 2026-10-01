@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hadits — Hikmah Pagi</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyA1wKt-kpfsG36Ut24NcoKvhLjHk8AoXMk",
+  authDomain: "hikmah-pagi.firebaseapp.com",
+  projectId: "hikmah-pagi",
+  storageBucket: "hikmah-pagi.firebasestorage.app",
+  messagingSenderId: "53407318584",
+  appId: "1:53407318584:web:eeeb3b039f716fbbf71ccd"
+});
+const db = firebase.firestore();
+</script>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <div class="brand"><span class="brand-icon">🌷</span><span class="brand-text">Hikmah Pagi</span><span class="brand-sub">Warisan Hikmah Ayah</span></div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Beranda</a>
+      <a href="/tausiyah.html" class="nav-link">Tausiyah</a>
+      <a href="/hikmah.html" class="nav-link">Hikmah</a>
+      <a href="/hadits.html" class="nav-link active">Hadits</a>
+      <a href="/quran.html" class="nav-link">Quran</a> <a href="/pengaturan.html" class="nav-link">Pengaturan</a> <a href="/logs.html" class="nav-link">Log</a> </nav>
+</aside>
+<main class="main">
+<div class="card animate-in">
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3>Hadits</h3><div style="display:flex;align-items:center;gap:8px"><span id="count" class="badge"></span><button class="btn" onclick="openForm()">+ Tambah</button></div></div>
+<table class="table" style="margin-top:var(--space-md)"><thead><tr><th>Judul</th><th>Isi</th><th>Rujukan</th><th>Aksi</th></tr></thead><tbody id="haditsBody"></tbody></table>
+<p id="empty" style="display:none;color:var(--muted);text-align:center;padding:var(--space-lg)">Belum ada data hadits</p>
+</div>
+
+<div id="viewModal" class="modal-overlay"><div class="modal-content">
+  <h3 id="viewTitle"></h3>
+  <div id="viewBody" style="white-space:pre-wrap;line-height:1.8"></div>
+  <div style="margin-top:var(--space-lg)"><button class="btn btn-ghost" onclick="closeView()">Tutup</button></div>
+</div></div>
+
+<div id="modal" class="modal-overlay"><div class="modal-content">
+  <h3 id="modalTitle">Tambah Hadits</h3>
+  <form onsubmit="submitForm(event)">
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Judul<input class="input" id="f_judul" required style="margin-top:4px"></label>
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Isi (Arab)<textarea class="input" id="f_isi" required rows="3" style="margin-top:4px;direction:rtl;font-family:Amiri;font-size:1.1em"></textarea></label>
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Rujukan<input class="input" id="f_rujukan" placeholder="cth: HR. Muslim no. 384" style="margin-top:4px"></label>
+    <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm)"><button class="btn" type="submit">Simpan</button><button class="btn btn-ghost" type="button" onclick="closeForm()">Batal</button></div>
+  </form>
+</div></div>
+<script>
+let cache = [];
+let editingId = null;
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function viewItem(i){
+  const t = cache[i];
+  document.getElementById('viewTitle').textContent = t.title || 'Hadits';
+  document.getElementById('viewBody').textContent = (t.content||'') + (t.reference ? '\n\nRujukan: '+t.reference : '');
+  document.getElementById('viewModal').classList.add('active');
+}
+function closeView(){ document.getElementById('viewModal').classList.remove('active'); }
+async function loadHadits(){
+  try{
+    const snap = await db.collection('hikmah_hadits').get();
+    const list = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    cache = list;
+    document.getElementById('count').textContent = list.length + ' entries';
+    const tbody = document.getElementById('haditsBody');
+    tbody.innerHTML = '';
+    if(list.length === 0){ document.getElementById('empty').style.display='block'; return; }
+    list.forEach((t, i) => {
+      const tr = document.createElement('tr');
+      const content = (t.content||'').substring(0, 100) + ((t.content||'').length > 100 ? '...' : '');
+      const qid = JSON.stringify(t.id);
+      tr.innerHTML = '<td><strong>' + esc(t.title) + '</strong></td><td style="color:var(--text-secondary)">' + esc(content) + '</td><td>' + esc(t.reference||'-') + '</td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="viewItem(' + i + ')">Lihat</button> <button class="btn btn-ghost btn-sm" onclick="editItem(' + qid + ')">Edit</button> <button class="btn btn-danger btn-sm" onclick="removeItem(' + qid + ')">Hapus</button></td>';
+      tbody.appendChild(tr);
+    });
+  }catch(e){ document.getElementById('haditsBody').innerHTML = '<tr><td colspan="4" style="color:red">Error: '+esc(e.message)+'</td></tr>'; }
+}
+function openForm(){ editingId = null; document.getElementById('modalTitle').textContent = 'Tambah Hadits'; document.getElementById('f_judul').value = ''; document.getElementById('f_isi').value = ''; document.getElementById('f_rujukan').value = ''; document.getElementById('modal').classList.add('active'); }
+function closeForm(){ document.getElementById('modal').classList.remove('active'); }
+async function editItem(id){
+  try{
+    const doc = await db.collection('hikmah_hadits').doc(String(id)).get();
+    const t = doc.data() || {};
+    editingId = id;
+    document.getElementById('modalTitle').textContent = 'Edit Hadits';
+    document.getElementById('f_judul').value = t.title || '';
+    document.getElementById('f_isi').value = t.content || '';
+    document.getElementById('f_rujukan').value = t.reference || '';
+    document.getElementById('modal').classList.add('active');
+  }catch(e){ alert('Error: ' + e.message); }
+}
+async function submitForm(e){
+  e.preventDefault();
+  const payload = { title: document.getElementById('f_judul').value, content: document.getElementById('f_isi').value, reference: document.getElementById('f_rujukan').value };
+  try{
+    if(editingId){ await db.collection('hikmah_hadits').doc(String(editingId)).update(payload); }
+    else { const docId = String(Date.now()); await db.collection('hikmah_hadits').doc(docId).set(Object.assign({ id: docId, tags: [] }, payload)); }
+    closeForm(); loadHadits();
+  }catch(e){ alert('Error: ' + e.message); }
+}
+async function removeItem(id){
+  if(!confirm('Hapus hadits ini?')) return;
+  try{ await db.collection('hikmah_hadits').doc(String(id)).delete(); loadHadits(); }catch(e){ alert('Error: ' + e.message); }
+}
+loadHadits();
+</script>
+<footer class="footer">© Hikmah Pagi — melanjutkan dakwah Ayah</footer>
+</main>
+</div>
+</body>
+</html>

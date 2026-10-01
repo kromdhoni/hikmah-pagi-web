@@ -1,0 +1,9 @@
+{
+  "name": "Hikmah Pagi",
+  "short_name": "Hikmah Pagi",
+  "description": "Aplikasi pengiriman tausiyah otomatis WhatsApp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B3D2E",
+  "theme_color": "#C5A880"
+}

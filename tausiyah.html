@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tausiyah — Hikmah Pagi</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyA1wKt-kpfsG36Ut24NcoKvhLjHk8AoXMk",
+  authDomain: "hikmah-pagi.firebaseapp.com",
+  projectId: "hikmah-pagi",
+  storageBucket: "hikmah-pagi.firebasestorage.app",
+  messagingSenderId: "53407318584",
+  appId: "1:53407318584:web:eeeb3b039f716fbbf71ccd"
+});
+const db = firebase.firestore();
+</script>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <div class="brand"><span class="brand-icon">🌷</span><span class="brand-text">Hikmah Pagi</span><span class="brand-sub">Warisan Hikmah Ayah</span></div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Beranda</a>
+      <a href="/tausiyah.html" class="nav-link active">Tausiyah</a>
+      <a href="/hikmah.html" class="nav-link">Hikmah</a>
+      <a href="/hadits.html" class="nav-link">Hadits</a>
+      <a href="/quran.html" class="nav-link">Quran</a> <a href="/pengaturan.html" class="nav-link">Pengaturan</a> <a href="/logs.html" class="nav-link">Log</a> </nav>
+</aside>
+<main class="main">
+<div class="card animate-in">
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3>Daftar Tausiyah</h3><div style="display:flex;align-items:center;gap:8px"><span id="count" class="badge"></span><button class="btn" onclick="openForm()">+ Tambah</button></div></div>
+<table class="table" style="margin-top:var(--space-md)"><thead><tr><th>ID</th><th>Judul</th><th>Sumber</th><th>Aksi</th></tr></thead><tbody id="tausiyahBody"></tbody></table>
+<p id="empty" style="display:none;color:var(--muted);text-align:center;padding:var(--space-lg)">Belum ada data tausiyah</p>
+</div>
+
+<!-- Modal Lihat Tausiyah -->
+<div id="modal" class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-content">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-sm)">
+    <h3 id="modalTitle" style="margin:0"></h3>
+    <button class="btn btn-ghost btn-sm" onclick="closeModal()" style="padding:6px;line-height:1;min-height:auto" aria-label="Tutup">✕</button>
+  </div>
+  <div id="modalBody" class="arab" style="white-space:pre-wrap;font-size:16px;line-height:1.8"></div>
+  <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm);flex-wrap:wrap">
+    <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
+    <button class="btn btn-accent" onclick="previewChat()">Preview Chat WA</button>
+  </div>
+</div></div>
+
+<!-- Modal Form Tausiyah -->
+<div id="formModal" class="modal-overlay" onclick="if(event.target===this)closeForm()"><div class="modal-content">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-sm)">
+    <h3 id="formTitle" style="margin:0">Tambah Tausiyah</h3>
+    <button class="btn btn-ghost btn-sm" onclick="closeForm()" style="padding:6px;line-height:1;min-height:auto" aria-label="Tutup">✕</button>
+  </div>
+  <form onsubmit="submitForm(event)">
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Judul<input class="input" id="f_judul" required style="margin-top:4px"></label>
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Arab (RTL)<textarea class="input" id="f_arab" rows="3" style="margin-top:4px;direction:rtl;font-family:Amiri;font-size:1.1em"></textarea></label>
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Terjemah<textarea class="input" id="f_terjemah" required rows="4" style="margin-top:4px"></textarea></label>
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Sumber<input class="input" id="f_sumber" style="margin-top:4px"></label>
+    <label style="display:block;margin-bottom:var(--space-sm);font-weight:600;font-size:13px;color:var(--text-secondary)">Doa<textarea class="input" id="f_doa" rows="2" style="margin-top:4px"></textarea></label>
+    <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm)"><button class="btn" type="submit">Simpan</button><button class="btn btn-ghost" type="button" onclick="closeForm()">Batal</button></div>
+  </form>
+</div></div>
+
+<!-- Modal Preview Chat WA -->
+<div id="previewModal" class="modal-overlay" onclick="if(event.target===this)closePreview()"><div class="modal-content" style="max-width:700px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-sm)">
+    <h3 id="previewTitle" style="margin:0">Preview Chat WhatsApp</h3>
+    <button class="btn btn-ghost btn-sm" onclick="closePreview()" style="padding:6px;line-height:1;min-height:auto" aria-label="Tutup">✕</button>
+  </div>
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-lg);max-height:60vh;overflow:auto;font-family:inherit;line-height:1.7" id="previewBody"></div>
+  <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm);flex-wrap:wrap">
+    <button class="btn btn-ghost" onclick="closePreview()">Tutup</button>
+    <button class="btn" onclick="copyPreview()">Salin Chat</button>
+  </div>
+</div></div>
+
+<script>
+let cache = [];
+let editingId = null;
+let currentPreviewTausiyah = null;
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>'); }
+async function loadTausiyah(){
+  try{
+    const snap = await db.collection('tausiyah').orderBy('id','asc').get();
+    cache = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    document.getElementById('count').textContent = cache.length + ' tausiyah';
+    const tbody = document.getElementById('tausiyahBody');
+    tbody.innerHTML = '';
+    if(cache.length === 0){ document.getElementById('empty').style.display='block'; return; }
+    cache.forEach((t, i) => {
+      const tr = document.createElement('tr');
+      const qid = JSON.stringify(t.id);
+      tr.innerHTML = '<td>' + esc(t.id) + '</td><td><strong>' + esc(t.judul||'-') + '</strong></td><td style="color:var(--text-secondary)">' + esc((t.sumber||'').substring(0,60)) + '</td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="viewItem(' + i + ')">Lihat</button> <button class="btn btn-ghost btn-sm" onclick="editItem(' + qid + ')">Edit</button> <button class="btn btn-danger btn-sm" onclick="removeItem(' + qid + ')">Hapus</button></td>';
+      tbody.appendChild(tr);
+    });
+  }catch(e){ document.getElementById('tausiyahBody').innerHTML = '<tr><td colspan="4" style="color:red">Error: '+esc(e.message)+'</td></tr>'; }
+}
+function viewItem(i){
+  const t = cache[i];
+  currentPreviewTausiyah = t;
+  document.getElementById('modalTitle').textContent = t.judul || ('Tausiyah #' + t.id);
+  document.getElementById('modalBody').textContent = (t.arab ? t.arab + '\n\n' : '') + (t.terjemah || '') + (t.sumber ? '\n\n( ' + t.sumber + ' )' : '') + (t.doa ? '\n\n' + t.doa : '');
+  document.getElementById('modal').classList.add('active');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('active'); }
+function openForm(){ editingId = null; document.getElementById('formTitle').textContent = 'Tambah Tausiyah'; document.getElementById('f_judul').value = ''; document.getElementById('f_arab').value = ''; document.getElementById('f_terjemah').value = ''; document.getElementById('f_sumber').value = ''; document.getElementById('f_doa').value = ''; document.getElementById('formModal').classList.add('active'); }
+function closeForm(){ document.getElementById('formModal').classList.remove('active'); }
+async function editItem(id){
+  try{
+    const doc = await db.collection('tausiyah').doc(String(id)).get();
+    const t = doc.data() || {};
+    editingId = id;
+    document.getElementById('formTitle').textContent = 'Edit Tausiyah';
+    document.getElementById('f_judul').value = t.judul || '';
+    document.getElementById('f_arab').value = t.arab || '';
+    document.getElementById('f_terjemah').value = t.terjemah || '';
+    document.getElementById('f_sumber').value = t.sumber || '';
+    document.getElementById('f_doa').value = t.doa || '';
+    document.getElementById('formModal').classList.add('active');
+  }catch(e){ alert('Error: ' + e.message); }
+}
+async function submitForm(e){
+  e.preventDefault();
+  const payload = { judul: document.getElementById('f_judul').value, arab: document.getElementById('f_arab').value, terjemah: document.getElementById('f_terjemah').value, sumber: document.getElementById('f_sumber').value, doa: document.getElementById('f_doa').value };
+  try{
+    if(editingId){ await db.collection('tausiyah').doc(String(editingId)).update(payload); }
+    else { const nid = Date.now(); await db.collection('tausiyah').doc(String(nid)).set(Object.assign({ id: nid }, payload)); }
+    closeForm(); loadTausiyah();
+  }catch(e){ alert('Error: ' + e.message); }
+}
+async function removeItem(id){
+  if(!confirm('Hapus tausiyah ini?')) return;
+  try{ await db.collection('tausiyah').doc(String(id)).delete(); loadTausiyah(); }catch(e){ alert('Error: ' + e.message); }
+}
+
+// ─── Preview Chat WA ───
+async function previewChat(){
+  const t = currentPreviewTausiyah;
+  if(!t) return;
+  document.getElementById('previewTitle').textContent = 'Preview: ' + (t.judul || 'Tausiyah');
+  try{
+    const snap = await db.collection('config').doc('app_config').get();
+    const c = snap.data() || {};
+    const pembuka = c.pesan_pembuka || '';
+    const penutup = c.pesan_penutup || '';
+    let msg = '';
+    if(pembuka) msg += pembuka + '\n\n';
+    msg += t.judul + '\n\n';
+    if(t.arab) msg += t.arab + '\n\n';
+    msg += t.terjemah + '\n\n';
+    if(t.sumber) msg += '( ' + t.sumber + ' )\n\n';
+    if(t.doa) msg += t.doa + '\n\n';
+    if(penutup) msg += penutup;
+    document.getElementById('previewBody').textContent = msg;
+  }catch(e){
+    document.getElementById('previewBody').textContent = 'Error loading config: ' + e.message;
+  }
+  document.getElementById('previewModal').classList.add('active');
+}
+function closePreview(){ document.getElementById('previewModal').classList.remove('active'); }
+async function copyPreview(){
+  const txt = document.getElementById('previewBody').textContent;
+  try{ await navigator.clipboard.writeText(txt); alert('Chat disalin ke clipboard!'); }catch(e){ alert('Gagal salin: '+e.message); }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    closeModal(); closeForm(); closePreview();
+  }
+});
+
+loadTausiyah();
+</script>
+<footer class="footer">© Hikmah Pagi — melanjutkan dakwah Ayah</footer>
+</main>
+</div>
+</body>
+</html>
